@@ -3,7 +3,8 @@ body {
   padding: 0;
   font-family: sans-serif;
   overflow-x: hidden !important;
-  background-color: #f2f2f2;
+  background-color: #25313b;
+  color: #fff !important;
 }
 .display-inline-block{
   display: inline-block !important;
@@ -29,7 +30,9 @@ body {
 .padding-left-0{
   padding-left: 0px !important;
 }
-
+.center{
+  text-align: center;
+}
 .margin-0{
   margin: 0px !important;
 }

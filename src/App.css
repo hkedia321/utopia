@@ -24,3 +24,16 @@
 textarea {
     overflow-x: hidden;
 }
+.responsive-img{
+    max-width: 100%;
+}
+.circle-img{
+    border-radius: 50%;
+}
+.dark-bg,.dark-bg *{
+    background-color: #323e47 !important;
+  color: #fff !important;
+}
+.card,table{
+    background-color: #323e47;
+}

@@ -5,80 +5,102 @@ import {
     Switch
 } from 'react-router-dom';
 import { connect } from 'react-redux';
+import io from 'socket.io-client';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
+import Stats from './Stats';
+import axios from 'axios';
+import TopContributors from './TopContributors';
 import {Grid, Col, Row} from 'react-flexbox-grid';
+import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
+import FlatButton from 'material-ui/FlatButton';
 import _ from 'lodash';
+import TableEntries from './TableEntries';
 import * as actions from './../actions';
-import Notepad from './Notepad';
-
+import Map from './Map';
+const ROOT_URL = "http://0c6a1334.ngrok.io";
 
 class Home extends Component {
     constructor(props){
         super(props);
         this.state={
-            notesData:[
-                {
-                    id:0,
-                    title:"",
-                    content:""
+            coords:{
+                data:[],
+                class:{
+                    "metal": 0,
+                    "glass": 0,
+                    "plastic": 0,
+                    "cardboard": 0,
+                    "paper": 0,
+                    "trash": 0
                 }
-            ]
+            },
         }
     }
-    updateNote = (noteDataReceived) =>{
-        let {notesData}=this.state;
-        console.log("Received in props:");
-        var  noteData=noteDataReceived;;
-        var index = _.findIndex(notesData, {id:noteData.id});
-        console.log(index);
-        // Replace item at index using native splice
-        notesData.splice(index, 1, noteData);
-        this.setState({notesData:notesData});
+    componentDidMount(){
+        this.loadCoors();
     }
-    handleAddNotepad = (event) =>{
-        console.log("Length:"+this.state.notesData.length);
-        let newNoteData={
-            id:this.state.notesData.length,
-            title:"",
-            content:""
-        }
-        let notesData=this.state.notesData;
-        notesData.push(newNoteData);
-        this.setState({notesData});
+    loadCoors = () =>{
+        console.log("CALLED func")
+        axios.get(`${ROOT_URL}/photo/coords`)
+        .then(response =>{
+            this.setState({
+                coords:response.data
+            });
+            console.log("Started IO")
+            let userSocket2 = io(`${ROOT_URL}`);
+            userSocket2.on('connect',(data)=>{
+                console.log("JOIN DATA");
+                console.log(data)
+            })
+            userSocket2.on('coords', (data) => {
+                console.log("RECEIVED FROM SOCKET");
+                let coords= this.state.coords;
+                coords.class=data.class;
+                coords.data.push(data.data);
+                console.log(data)
+                this.setState({coords})
+            });
+        })
+        .catch((err)=>{
+            console.log(err);
+            this.props.showMessage("Error! Couldn't get coordinates");
+        })
     }
+
     render() {
         const styles={
-            floatingButton:{
-                marginRight:"20px",
-                position:"fixed",
-                right:"20px",
-                bottom:"20px"
-            }
+
         }
         return (
             <div className="home-wrap">
-                <h1 style={{textAlign:"center"}}>Notezy</h1>
-                <Grid fluid>
-                    <Row>
-                        {this.state.notesData.map((noteData)=>{
-                            return (
-                                <Notepad key={noteData.id} noteData={JSON.stringify(noteData)} updateNote={this.updateNote} />
-                            )
-                        })}
-                    </Row>
-                </Grid>
-                <FloatingActionButton style={styles.floatingButton} onClick={this.handleAddNotepad}>
-                    <ContentAdd />
-                </FloatingActionButton>
-            </div>
-        );
+                <h1 style={{textAlign:"center"}}>Utopia</h1>
+
+                    <Grid fluid>
+                        <Row>
+                            <Col xs={12} md={12} className="notepad-wrap">
+                                <Map coords={(this.state.coords.data)}/>
+                            </Col>
+                        </Row>
+                        <br/><br/>
+                        <Stats data={JSON.stringify(this.state.coords.class)}/>
+                        <Row>
+                            <Col xs={12} md={3} className="leaderboard-wrap">
+                                <TopContributors/>
+                            </Col>
+                            <Col xs={12} md={9} className="table-wrap">
+                                <TableEntries users={JSON.stringify(this.state.coords.data)}/>
+                            </Col>
+                        </Row>
+                    </Grid>
+                </div>
+            );
+        }
     }
-}
 
-function mapStateToProps(state){
-    return {
-    };
-}
+    function mapStateToProps(state){
+        return {
+        };
+    }
 
-export default connect(mapStateToProps,actions)(Home);
+    export default connect(mapStateToProps,actions)(Home);
