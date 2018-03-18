@@ -1,4 +1,5 @@
-# Notezy
+# Utopia
+[Utopia](http://utopiacity.surge.sh/)
 ## How to deploy?
 
 ### Running on localhost
